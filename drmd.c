@@ -14,20 +14,29 @@ int main() {
   bcm2835_i2c_setSlaveAddress(0b00010100);
   bcm2835_i2c_set_baudrate(100000);
 
+  int count = 0;
+  int sum = 0;
+
   while (1) {
     result_code = bcm2835_i2c_read(buffer, 2);
 
     switch (result_code) {
       case BCM2835_I2C_REASON_OK:
         voltage = buffer[0] << 8 | buffer[1];
-        printf("%d\n", voltage);
+        sum += voltage;
+        count++;
         break;
       case BCM2835_I2C_REASON_ERROR_NACK:
       case BCM2835_I2C_REASON_ERROR_CLKT:
       case BCM2835_I2C_REASON_ERROR_DATA:
-	break;
+        break;
     }
-  }
+
+    if (count >= 30) {
+      printf("%d\n", (sum / count));
+      count = 0;
+      sum = 0;
+    }
 
   return 0;
 }
