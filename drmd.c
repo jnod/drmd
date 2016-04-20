@@ -10,15 +10,11 @@ int main() {
     return 1;
   }
 
-  if (!bcm2835_i2c_begin()) {
-    printf("bcm2835_i2c_begin failed. Are you running as root??\n");
-    return 1;
-  }
-
+  bcm2835_i2c_begin();
   bcm2835_i2c_setSlaveAddress(0b00010100);
   bcm2835_i2c_set_baudrate(100000);
 
-  while (true) {
+  while (1) {
     result_code = bcm2835_i2c_read(buffer, 2);
 
     switch (result_code) {
@@ -29,6 +25,7 @@ int main() {
       case BCM2835_I2C_REASON_ERROR_NACK:
       case BCM2835_I2C_REASON_ERROR_CLKT:
       case BCM2835_I2C_REASON_ERROR_DATA:
+	break;
     }
   }
 
