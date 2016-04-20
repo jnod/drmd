@@ -14,7 +14,7 @@ int main() {
   bcm2835_i2c_setSlaveAddress(0b00010100);
   bcm2835_i2c_set_baudrate(100000);
   bcm2835_gpio_fsel(RPI2_GPIO_4, BCM2835_GPIO_FSEL_OUTP);
-  bcm2835_gpio_write(PIN, LOW);
+  bcm2835_gpio_write(RPI2_GPIO_4, LOW);
 
   int count = 0;
   int sum = 0;
