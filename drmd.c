@@ -37,6 +37,7 @@ int main() {
       count = 0;
       sum = 0;
     }
+  }
 
   return 0;
 }
