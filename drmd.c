@@ -13,6 +13,8 @@ int main() {
   bcm2835_i2c_begin();
   bcm2835_i2c_setSlaveAddress(0b00010100);
   bcm2835_i2c_set_baudrate(100000);
+  buffer[0] = 0b10100000;
+  bcm2835_i2c_write(buffer, 1);
   bcm2835_gpio_fsel(RPI_PDN1, BCM2835_GPIO_FSEL_OUTP);
   bcm2835_gpio_write(RPI_PDN1, HIGH);
 
@@ -34,10 +36,11 @@ int main() {
         break;
     }
 
-    if (count >= 30) {
-      printf("%d\n", (sum / count));
+    if (count >= 15) {
+      printf("%.0f mV\n", ((float)sum / count / 65536 * 1250));
       count = 0;
       sum = 0;
+      //bcm2835_gpio_write(RPI_PDN1, LOW);
     }
   }
 
