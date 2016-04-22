@@ -12,6 +12,7 @@ static State      stateReadUV();
 static State      stateUI();
 
 static Bool       sigint_set = FALSE;
+static State      state = UI;
 static uint8_t    buffer[2];
 static uint16_t   voltage;
 static int        stepper_position = 0;
@@ -20,16 +21,10 @@ static int        stepper_target = 0;
 int main() {
   if (initialize()) return 1; // exit if there was an error initializing
 
-  State state = UI;
-
   while (1) {
     if (sigint_set == TRUE) {
-      if (state == UI) {
-        printf("Type 'exit' to exit\n");
-      } else {
-        state = UI;
-        printf("\n");
-      }
+      state = UI;
+      printf("\n");
 
       sigint_set = FALSE;
     }
@@ -68,9 +63,8 @@ static int initialize() {
 
 static void interrupt(int signo) {
   if (signo == SIGINT) {
+    if (state = UI) cleanAndExit();
     sigint_set = TRUE;
-    fseek(stdin,0,SEEK_END);
-    printf("\n>");
   }
 }
 
