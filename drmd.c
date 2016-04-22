@@ -3,17 +3,19 @@
 static typedef enum { TRUE, FALSE } Bool;
 static typedef enum { MOVE_STEPPER, READ_UV, UI } State;
 
-static void   clean();
-static int    initialize();
-static void   interrupt(int);
-static State  machine(State);
-static State  stateMoveStepper();
-static State  stateReadUV(Bool);
-static State  stateUI();
+static void       clean();
+static int        initialize();
+static void       interrupt(int);
+static State      machine(State);
+static State      stateMoveStepper();
+static State      stateReadUV();
+static State      stateUI();
 
 static Bool       sigint_set = FALSE;
 static uint8_t    buffer[2];
 static uint16_t   voltage;
+static int        stepper_position = 0;
+static int        stepper_target = 0;
 
 int main() {
   if (initialize()) return 1; // exit if there was an error initializing
@@ -33,7 +35,7 @@ int main() {
 }
 
 static void clean() {
-  // revert to default state
+  bcm2835_gpio_write(PDN1, LOW); // Turn off UV LED
 }
 
 static int initialize() {
@@ -74,7 +76,7 @@ static State machine(State state) {
   }
 }
 
-static State stateReadUV(Bool continuous) {
+static State stateReadUV() {
   static int count = 0;
   static int sum = 0;
 
@@ -96,19 +98,34 @@ static State stateReadUV(Bool continuous) {
     printf("%.2f%%\n", ((float)sum / count / 65536 * 100));
     count = 0;
     sum = 0;
-
-    if (continuous == FALSE) return UI; 
   }
 
   return READ_UV;
 }
 
 static State stateMoveStepper() {
-  printf("(move stepper)");
+  printf("(move stepper %d)", stepper_target);
+  stepper_position = stepper_target;
 
   return UI;
 }
 
 static State stateUI() {
+  static char command[100];
 
+  printf("> ");
+  fgets(command, 100, stdin);
+
+  if (strcmp(command, "read uv") == 0) {
+    return READ_UV;
+  } else if (strncmp(command, "move stepper", 12) == 0) {
+    int distance = 0;
+    
+    if (sscanf(command[13], "%d", distance)) {
+      stepper_target = stepper_position + distance;
+      return MOVE_STEPPER;
+    }
+  }
+
+  return UI;
 }

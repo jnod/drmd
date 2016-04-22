@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // GPIO pin mappings to the bcm2835 for rpi b+ and rpi 2 40 pin headers
