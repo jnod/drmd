@@ -135,7 +135,7 @@ static State stateUI() {
         stepper_target = stepper_position + distance;
         return MOVE_STEPPER;
       } else {
-        printf("Error: Third parameter must be an integer.\n")
+        printf("Error: Third parameter must be an integer.\n");
       }
     } else {
       printf("Error: Must provide an integer distance X to move (move stepper X).\n");
