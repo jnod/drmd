@@ -63,7 +63,10 @@ static int initialize() {
 
 static void interrupt(int signo) {
   if (signo == SIGINT) {
-    if (state = UI) cleanAndExit();
+    if (state == UI) {
+      printf("\n");
+      cleanAndExit();
+    }
     sigint_set = TRUE;
   }
 }
