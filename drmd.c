@@ -42,7 +42,7 @@ static void cleanAndExit() {
 
 static int initialize() {
   if (!bcm2835_init()) {
-    printf("bcm2835_init failed. Are you running as root??\n");
+    printf("Error: bcm2835_init failed. Must run as root.\n");
     return 1;
   }
 
@@ -110,7 +110,7 @@ static State stateReadUV() {
 }
 
 static State stateMoveStepper() {
-  printf("(move stepper %d)\n", stepper_target);
+  printf("(target = %d)\n", stepper_target);
   stepper_position = stepper_target;
 
   return UI;
@@ -125,21 +125,23 @@ static State stateUI() {
   if (strncmp(command, "exit", 4) == 0) {
     cleanAndExit();
   } else if (strncmp(command, "read uv", 7) == 0) {
-    printf("Press (ctrl+c) to stop");
+    printf("Press (ctrl+c) to stop\n");
     return READ_UV;
   } else if (strncmp(command, "move stepper", 12) == 0) {
     int distance = 0;
     
     if (command[12] != '\0' && command[13] != '\0') {
-      if(sscanf(&command[13], "%d", &distance)) {
+      if (sscanf(&command[13], "%d", &distance)) {
         stepper_target = stepper_position + distance;
         return MOVE_STEPPER;
+      } else {
+        printf("Error: Third parameter must be an integer.\n")
       }
     } else {
-      printf("Must provide an integer distance X to move (move stepper X)\n");
+      printf("Error: Must provide an integer distance X to move (move stepper X).\n");
     }
   } else {
-    printf("Invalid command\n");
+    printf("Error: Invalid command.\n");
   }
 
   return UI;
