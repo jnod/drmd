@@ -25,7 +25,7 @@ int main() {
   while (1) {
     if (sigint_set == TRUE) {
       if (state == UI) {
-        printf("Type 'exit' to exit");
+        printf("Type 'exit' to exit\n");
       } else {
         state = UI;
         printf("\n");
@@ -69,8 +69,8 @@ static int initialize() {
 static void interrupt(int signo) {
   if (signo == SIGINT) {
     sigint_set = TRUE;
-    printf("\n");
     fseek(stdin,0,SEEK_END);
+    printf("\n>");
   }
 }
 
