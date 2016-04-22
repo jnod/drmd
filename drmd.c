@@ -37,10 +37,9 @@ int main() {
     }
 
     if (count >= 15) {
-      printf("%.0f mV\n", ((float)sum / count / 65536 * 1250));
+      printf("%.1f mV\n", ((float)sum / count / 65536 * 1250));
       count = 0;
       sum = 0;
-      //bcm2835_gpio_write(RPI_PDN1, LOW);
     }
   }
 
