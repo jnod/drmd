@@ -3,7 +3,7 @@
 typedef enum { TRUE, FALSE } Bool;
 typedef enum { MOVE_STEPPER, READ_UV, UI } State;
 
-static void       clean();
+static void       cleanAndExit();
 static int        initialize();
 static void       interrupt(int);
 static State      machine(State);
@@ -23,19 +23,25 @@ int main() {
 
   while (1) {
     if (sigint_set == TRUE) {
-      if (state == UI) break;
-      state = UI;
+      if (state == UI) {
+        printf("Type 'exit' to exit");
+      } else {
+        state = UI;
+        printf("\n");
+      }
+
       sigint_set = FALSE;
     }
+
     state = machine(state);
   }
 
-  clean();
   return 0;
 }
 
-static void clean() {
+static void cleanAndExit() {
   bcm2835_gpio_write(PDN1, LOW); // Turn off UV LED
+  exit(0);
 }
 
 static int initialize() {
@@ -104,7 +110,7 @@ static State stateReadUV() {
 }
 
 static State stateMoveStepper() {
-  printf("(move stepper %d)", stepper_target);
+  printf("(move stepper %d)\n", stepper_target);
   stepper_position = stepper_target;
 
   return UI;
@@ -116,12 +122,14 @@ static State stateUI() {
   printf("> ");
   fgets(command, 100, stdin);
 
-  if (strncmp(command, "read uv", 7) == 0) {
+  if (strncmp(command, "exit", 4) == 0) {
+    cleanAndExit();
+  } else if (strncmp(command, "read uv", 7) == 0) {
     return READ_UV;
   } else if (strncmp(command, "move stepper", 12) == 0) {
     int distance = 0;
     
-    if (sscanf(&command[13], "%d", distance)) {
+    if (sscanf(&command[13], "%d", &distance)) {
       stepper_target = stepper_position + distance;
       return MOVE_STEPPER;
     }
