@@ -125,7 +125,7 @@ static State stateUI() {
   if (strncmp(command, "exit", 4) == 0) {
     cleanAndExit();
   } else if (strncmp(command, "read uv", 7) == 0) {
-    printf("Press (ctrl+c) to stop")
+    printf("Press (ctrl+c) to stop");
     return READ_UV;
   } else if (strncmp(command, "move stepper", 12) == 0) {
     int distance = 0;
