@@ -2,40 +2,73 @@
 #define DRMD_H_
 
 #include <bcm2835.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
 // GPIO pin mappings to the bcm2835 for rpi b+ and rpi 2 40 pin headers
-#define RPI_GPIO_2     RPI_BPLUS_GPIO_J8_03
-#define RPI_GPIO_3     RPI_BPLUS_GPIO_J8_05
-#define RPI_GPIO_4     RPI_BPLUS_GPIO_J8_07
-#define RPI_GPIO_5     RPI_BPLUS_GPIO_J8_29
-#define RPI_GPIO_6     RPI_BPLUS_GPIO_J8_31
-#define RPI_GPIO_7     RPI_BPLUS_GPIO_J8_26
-#define RPI_GPIO_8     RPI_BPLUS_GPIO_J8_24
-#define RPI_GPIO_9     RPI_BPLUS_GPIO_J8_21
-#define RPI_GPIO_10    RPI_BPLUS_GPIO_J8_19
-#define RPI_GPIO_11    RPI_BPLUS_GPIO_J8_23
-#define RPI_GPIO_12    RPI_BPLUS_GPIO_J8_32
-#define RPI_GPIO_13    RPI_BPLUS_GPIO_J8_33
-#define RPI_GPIO_14    RPI_BPLUS_GPIO_J8_08
-#define RPI_GPIO_15    RPI_BPLUS_GPIO_J8_10
-#define RPI_GPIO_16    RPI_BPLUS_GPIO_J8_36
-#define RPI_GPIO_17    RPI_BPLUS_GPIO_J8_11
-#define RPI_GPIO_18    RPI_BPLUS_GPIO_J8_12
-#define RPI_GPIO_19    RPI_BPLUS_GPIO_J8_35
-#define RPI_GPIO_20    RPI_BPLUS_GPIO_J8_38
-#define RPI_GPIO_21    RPI_BPLUS_GPIO_J8_40
-#define RPI_GPIO_22    RPI_BPLUS_GPIO_J8_15
-#define RPI_GPIO_23    RPI_BPLUS_GPIO_J8_16
-#define RPI_GPIO_24    RPI_BPLUS_GPIO_J8_18
-#define RPI_GPIO_25    RPI_BPLUS_GPIO_J8_22
-#define RPI_GPIO_26    RPI_BPLUS_GPIO_J8_37
-#define RPI_GPIO_27    RPI_BPLUS_GPIO_J8_13
+#define GPIO2     RPI_BPLUS_GPIO_J8_03
+#define GPIO3     RPI_BPLUS_GPIO_J8_05
+#define GPIO4     RPI_BPLUS_GPIO_J8_07
+#define GPIO5     RPI_BPLUS_GPIO_J8_29
+#define GPIO6     RPI_BPLUS_GPIO_J8_31
+#define GPIO7     RPI_BPLUS_GPIO_J8_26
+#define GPIO8     RPI_BPLUS_GPIO_J8_24
+#define GPIO9     RPI_BPLUS_GPIO_J8_21
+#define GPIO10    RPI_BPLUS_GPIO_J8_19
+#define GPIO11    RPI_BPLUS_GPIO_J8_23
+#define GPIO12    RPI_BPLUS_GPIO_J8_32
+#define GPIO13    RPI_BPLUS_GPIO_J8_33
+#define GPIO14    RPI_BPLUS_GPIO_J8_08
+#define GPIO15    RPI_BPLUS_GPIO_J8_10
+#define GPIO16    RPI_BPLUS_GPIO_J8_36
+#define GPIO17    RPI_BPLUS_GPIO_J8_11
+#define GPIO18    RPI_BPLUS_GPIO_J8_12
+#define GPIO19    RPI_BPLUS_GPIO_J8_35
+#define GPIO20    RPI_BPLUS_GPIO_J8_38
+#define GPIO21    RPI_BPLUS_GPIO_J8_40
+#define GPIO22    RPI_BPLUS_GPIO_J8_15
+#define GPIO23    RPI_BPLUS_GPIO_J8_16
+#define GPIO24    RPI_BPLUS_GPIO_J8_18
+#define GPIO25    RPI_BPLUS_GPIO_J8_22
+#define GPIO26    RPI_BPLUS_GPIO_J8_37
+#define GPIO27    RPI_BPLUS_GPIO_J8_13
 
-#define RPI_SDA1       RPI_GPIO_2
-#define RPI_SCL1       RPI_GPIO_3
-#define RPI_PDN1       RPI_GPIO_4
+#define SDA1      GPIO2
+#define SCL1      GPIO3
+
+#define PDN1      GPIO4       // Absorbance LED
+#define PDN2      GPIO17      // Flourescence LED
+#define PDN3      GPIO21      // Peristaltic Pump
+
+/*  DRV8825 PINS:
+      PD      Input with internal PullDown resistor
+      PU      Input with internal PullUp resistor
+      PDPU    Input with internal PullDown and PullUp resistors
+      O       Output
+      OD      Output with an Open Drain
+*/
+#define nENBL     GPIO6       // PD     0, open = enable; 1 = disable
+#define STEP      GPIO12      // PD     rising edge steps motor
+#define DIR       GPIO13      // PD     0 = forward, 1 = reverse
+#define DECAY     GPIO16      // PDPU   0 = slow, open = mixed, 1 = fast
+#define nRESET    GPIO26      // PD     
+#define nSLEEP    GPIO20      // PD     0 = sleep, 1 = enable
+
+#define nHOME     GPIO11      // OD     0 when at home state, open otherwise
+#define nFAULT    GPIO19      // OD     0 when overtemp/overcurrent, open otherwise
+
+/*  [MODE2, MODE1, MODE0] determines the degree of microstepping
+      000       Full step
+      001       1/2 step
+      010       1/4 step
+      011       1/8 step
+      100       1/16 step
+      101-111   1/32 step
+*/
+#define MODE0     GPIO5       // PD
+#define MODE1     GPIO7       // PD
+#define MODE2     GPIO8       // PD
 
 #endif
