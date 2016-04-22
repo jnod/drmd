@@ -125,14 +125,21 @@ static State stateUI() {
   if (strncmp(command, "exit", 4) == 0) {
     cleanAndExit();
   } else if (strncmp(command, "read uv", 7) == 0) {
+    printf("Press (ctrl+c) to stop")
     return READ_UV;
   } else if (strncmp(command, "move stepper", 12) == 0) {
     int distance = 0;
     
-    if (sscanf(&command[13], "%d", &distance)) {
-      stepper_target = stepper_position + distance;
-      return MOVE_STEPPER;
+    if (command[12] != '\0' && command[13] != '\0') {
+      if(sscanf(&command[13], "%d", &distance)) {
+        stepper_target = stepper_position + distance;
+        return MOVE_STEPPER;
+      }
+    } else {
+      printf("Must provide an integer distance X to move (move stepper X)\n");
     }
+  } else {
+    printf("Invalid command\n");
   }
 
   return UI;
