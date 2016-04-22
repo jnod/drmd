@@ -1,7 +1,7 @@
 #include "drmd.h"
 
-static typedef enum { TRUE, FALSE } Bool;
-static typedef enum { MOVE_STEPPER, READ_UV, UI } State;
+typedef enum { TRUE, FALSE } Bool;
+typedef enum { MOVE_STEPPER, READ_UV, UI } State;
 
 static void       clean();
 static int        initialize();
@@ -72,7 +72,7 @@ static State machine(State state) {
     case READ_UV:
       return stateReadUV();
     case UI:
-      return stateUI;
+      return stateUI();
   }
 }
 
@@ -95,7 +95,7 @@ static State stateReadUV() {
   }
 
   if (count >= 15) {
-    printf("%.2f%%\n", ((float)sum / count / 65536 * 100));
+    printf("%.2f %%\n", ((float)sum / count / 65536 * 100));
     count = 0;
     sum = 0;
   }
@@ -116,12 +116,12 @@ static State stateUI() {
   printf("> ");
   fgets(command, 100, stdin);
 
-  if (strcmp(command, "read uv") == 0) {
+  if (strncmp(command, "read uv", 7) == 0) {
     return READ_UV;
   } else if (strncmp(command, "move stepper", 12) == 0) {
     int distance = 0;
     
-    if (sscanf(command[13], "%d", distance)) {
+    if (sscanf(&command[13], "%d", distance)) {
       stepper_target = stepper_position + distance;
       return MOVE_STEPPER;
     }
