@@ -169,19 +169,20 @@ static State stateMoveStepper() {
     configOutput(nENBL, HIGH); // Disable output drivers
   }
 
-  int64_t step_interval_ns = (((int64_t) stepper_rpm) * 1e9) / 60;
+  int64_t step_interval_ns = 60e9 / ((int64_t) stepper_rpm * USTEP_PER_REV);
   int64_t currenttime_ns = getTimestampNs();
   if (prevtime_ns == 0) prevtime_ns = currenttime_ns;
+  int64_t elapsed_ns = currenttime_ns - prevtime_ns;
 
-  if (currenttime_ns - prevtime_ns >= step_interval_ns) {
-    if (stepper_target - stepper_position > 1) {
+  if (elapsed_ns >= step_interval_ns) {
+    if (stepper_target - stepper_position > 0) {
       stepper_position++;
     } else {
       stepper_position--;
     }
 
     prevtime_ns = currenttime_ns;
-    printf("(position = %d, timestamp = %lld)\n", stepper_position, currenttime_ns);
+    printf("(position = %d, elapsed_ns = %lld)\n", stepper_position, elapsed_ns);
   }
 
   return MOVE_STEPPER;
