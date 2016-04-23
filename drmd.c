@@ -55,7 +55,7 @@ static int initialize() {
 
   bcm2835_gpio_fsel(PDN1, BCM2835_GPIO_FSEL_OUTP);
   bcm2835_gpio_write(PDN1, HIGH); // Turn on UV LED
-  bcm2835_gpio_write(PDN3, LOW)
+  bcm2835_gpio_write(PDN3, LOW);
 
   signal(SIGINT, interrupt); // Set interrupt(int) to handle Ctrl+c events
 
