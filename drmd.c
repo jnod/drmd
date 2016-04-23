@@ -55,6 +55,7 @@ static int initialize() {
 
   bcm2835_gpio_fsel(PDN1, BCM2835_GPIO_FSEL_OUTP);
   bcm2835_gpio_write(PDN1, HIGH); // Turn on UV LED
+  bcm2835_gpio_write(PDN3, LOW)
 
   signal(SIGINT, interrupt); // Set interrupt(int) to handle Ctrl+c events
 
@@ -140,10 +141,14 @@ static State stateUI() {
     } else {
       printf("Error: Must provide an integer distance X to move (move stepper X).\n");
     }
-  } else if (strncmp(command, "pump on", 4) == 0) {
+  } else if (strncmp(command, "pump on", 8) == 0) {
     printf("(pump on)\n");
-  } else if (strncmp(command, "pump off", 4) == 0) {
+  } else if (strncmp(command, "pump off", 8) == 0) {
     printf("(pump off)\n");
+  } else if (strncmp(command, "uv on", 5) == 0) {
+    printf("(uv on)\n");
+  } else if (strncmp(command, "uv off", 5) == 0) {
+    printf("(uv off)\n");
   } else {
     printf("Error: Invalid command.\n");
   }
