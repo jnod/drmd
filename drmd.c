@@ -165,8 +165,8 @@ static State stateMoveStepper() {
   static int64_t prevtime_ns = 0;
 
   if (stepper_position == stepper_target) {
-    return UI;
     configOutput(nENBL, HIGH); // Disable output drivers
+    return UI;
   }
 
   int64_t step_interval_ns = 60e9 / ((int64_t) stepper_rpm * USTEP_PER_REV);
