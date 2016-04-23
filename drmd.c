@@ -176,10 +176,15 @@ static State stateMoveStepper() {
 
   if (elapsed_ns >= step_interval_ns) {
     if (stepper_target - stepper_position > 0) {
+      writeToPin(DIR, LOW);
       stepper_position++;
     } else {
+      writeToPin(DIR, HIGH);
       stepper_position--;
     }
+
+    writeToPin(STEP, HIGH);
+    writeToPin(STEP, LOW);
 
     prevtime_ns = currenttime_ns;
     printf("(position = %d, elapsed_ns = %lld)\n", stepper_position, elapsed_ns);
@@ -207,6 +212,7 @@ static State stateUI() {
         stepper_target = stepper_position + distance;
 
         writeToPin(nENBL, LOW); // Enable output drivers
+        printf("Press (ctrl+c) to stop:\n");
         return MOVE_STEPPER;
       } else {
         printf("Error: Third parameter must be an integer.\n");
