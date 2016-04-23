@@ -164,15 +164,17 @@ static State stateReadUV() {
 static State stateMoveStepper() {
   static int64_t prevtime_ns = 0;
 
-  if (stepper_position == stepper_target) {
-    configOutput(nENBL, HIGH); // Disable output drivers
-    return UI;
-  }
-
   int64_t step_interval_ns = 60e9 / ((int64_t) stepper_rpm * USTEP_PER_REV);
   int64_t currenttime_ns = getTimestampNs();
   if (prevtime_ns == 0) prevtime_ns = currenttime_ns;
   int64_t elapsed_ns = currenttime_ns - prevtime_ns;
+
+  if (stepper_position == stepper_target && elapsed_ns >= step_interval_ns / 2) {
+    // Makes sure STEP is high for half of the cycle before stopping
+    writeToPin(STEP, LOW);
+    configOutput(nENBL, HIGH); // Disable output drivers
+    return UI;
+  }
 
   if (elapsed_ns >= step_interval_ns) {
     if (stepper_target - stepper_position > 0) {
@@ -184,10 +186,12 @@ static State stateMoveStepper() {
     }
 
     writeToPin(STEP, HIGH);
-    writeToPin(STEP, LOW);
 
     prevtime_ns = currenttime_ns;
     printf("(position = %d, elapsed_ns = %lld)\n", stepper_position, elapsed_ns);
+  } else if (elapsed_ns >= step_interval_ns / 2) {
+    // STEP must be high for at least 1.9 microseconds.
+    writeToPin(STEP, LOW);
   }
 
   return MOVE_STEPPER;
