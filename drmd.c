@@ -219,7 +219,7 @@ static State stateUI() {
     
     if (command[12] != '\0' && command[13] != '\0') {
       if (sscanf(&command[13], "%d", &distance)) {
-        stepper_target = stepper_position + distance;
+        stepper_target = stepper_position + distance*32;
 
         writeToPin(nENBL, LOW); // Enable output drivers
         printf("Press (ctrl+c) to stop:\n");
