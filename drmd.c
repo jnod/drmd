@@ -25,7 +25,7 @@ static uint16_t   stepper_rpm = 1;
 
 #define MIN_RPM         1
 #define MAX_RPM         100
-#define USTEP_PER_REV   3200 // Number of microsteps per revolution (1/32 microstepping)
+#define USTEP_PER_REV   6400 // Number of microsteps per revolution (1/32 microstepping)
 
 int main() {
   if (initialize()) return 1; // exit if there was an error initializing
