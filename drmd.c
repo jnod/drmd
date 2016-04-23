@@ -6,7 +6,7 @@ typedef enum { MOVE_STEPPER, READ_UV, UI } State;
 static void       cleanAndExit();
 static void       configInput(uint8_t, uint8_t);
 static void       configOutput(uint8_t, uint8_t);
-static int64_t    getTimestampNs()
+static int64_t    getTimestampNs();
 static int        initialize();
 static void       interrupt(int);
 static State      machine(State);
