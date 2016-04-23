@@ -22,10 +22,10 @@ static uint16_t   voltage;
 static int        stepper_position = 0;
 static int        stepper_target = 0;
 static uint16_t   stepper_rpm = 1;
-static uint16_t   microstep_per_rev = STEPS_PER_REV;
 
-#define MIN_RPM   1
-#define MAX_RPM   100
+#define MIN_RPM         1
+#define MAX_RPM         100
+#define USTEP_PER_REV   3200 // Number of microsteps per revolution (1/32 microstepping)
 
 int main() {
   if (initialize()) return 1; // exit if there was an error initializing
@@ -105,7 +105,6 @@ static int initialize() {
   configOutput(MODE0, HIGH);
   configOutput(MODE1, HIGH);
   configOutput(MODE2, HIGH);
-  microstep_per_rev = STEPS_PER_REV * 32;
 
   signal(SIGINT, interrupt); // Set interrupt(int) to handle Ctrl+c events
 
@@ -163,15 +162,29 @@ static State stateReadUV() {
 }
 
 static State stateMoveStepper() {
-  static int64_t prevtime = 0;
-  int64_t currenttime = getTimestampNs();
-  if (prevtime == 0) prevtime = currenttime;
+  static int64_t prevtime_ns = 0;
 
-  printf("(target = %d, timestamp = %lld)\n", stepper_target, currenttime);
-  stepper_position = stepper_target;
+  if (stepper_position == stepper_target) {
+    return UI;
+    configOutput(nENBL, HIGH); // Disable output drivers
+  }
 
-  configOutput(nENBL, HIGH); // Disable output drivers
-  return UI;
+  int64_t step_interval_ns = (((int64_t) stepper_rpm) * 1e9) / 60;
+  int64_t currenttime_ns = getTimestampNs();
+  if (prevtime == 0) prevtime_ns = currenttime_ns;
+
+  if (currenttime_ns - prevtime_ns >= step_interval_ns) {
+    if (stepper_target - stepper_position > 1) {
+      stepper_position++;
+    } else {
+      stepper_position--;
+    }
+
+    prevtime_ns = currenttime_ns;
+    printf("(position = %d, timestamp = %lld)\n", stepper_position, currenttime_ns);
+  }
+
+  return MOVE_STEPPER;
 }
 
 static State stateUI() {
@@ -207,7 +220,7 @@ static State stateUI() {
       if (sscanf(&command[12], "%d", &rpm)) {
         if (rpm >= MIN_RPM && rpm <= MAX_RPM) {
           stepper_rpm = (uint16_t) rpm;
-          printf("Stepper speed successfully set to %d rpm.", stepper_rpm);
+          printf("Stepper speed successfully set to %d rpm.\n", stepper_rpm);
         } else {
           printf("Error: rpm must be between %d and %d inclusive.\n", MIN_RPM, MAX_RPM);
         }
