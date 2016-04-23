@@ -10,6 +10,7 @@ static int64_t    getTimestampNs();
 static int        initialize();
 static void       interrupt(int);
 static State      machine(State);
+static void       sleepNs(long);
 static State      stateMoveStepper();
 static State      stateReadUV();
 static State      stateUI();
@@ -134,6 +135,11 @@ static State machine(State state) {
   }
 }
 
+/* Only works for nanosecond values between 0 and 1 second, non inclusive */
+static void sleepNs(long nanoseconds) {
+  nanosleep((const struct timespec[]){{0, nanoseconds}}, NULL);
+}
+
 static State stateReadUV() {
   static int count = 0;
   static int sum = 0;
@@ -217,6 +223,7 @@ static State stateUI() {
 
         writeToPin(nENBL, LOW); // Enable output drivers
         printf("Press (ctrl+c) to stop:\n");
+        sleepNs(1e6);
         return MOVE_STEPPER;
       } else {
         printf("Error: Third parameter must be an integer.\n");
