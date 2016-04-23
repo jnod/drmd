@@ -36,7 +36,12 @@ int main() {
 }
 
 static void cleanAndExit() {
-  bcm2835_gpio_write(PDN1, LOW); // Turn off UV LED
+  bcm2835_gpio_fsel(PDN1, INPUT);
+  bcm2835_gpio_set_pud(PDN1, PULLDOWN);
+
+  bcm2835_gpio_fsel(PDN3, INPUT);
+  bcm2835_gpio_set_pud(PDN3, PULLDOWN);
+
   exit(0);
 }
 
@@ -53,8 +58,12 @@ static int initialize() {
   buffer[0] = 0b10100000; // Code to enable continuous calibration on ADC
   bcm2835_i2c_write(buffer, 1);
 
-  bcm2835_gpio_fsel(PDN1, BCM2835_GPIO_FSEL_OUTP);
-  bcm2835_gpio_write(PDN1, HIGH); // Turn on UV LED
+  // Enable output for UV LED
+  bcm2835_gpio_fsel(PDN1, OUTPUT);
+  bcm2835_gpio_write(PDN1, LOW);
+
+  // Enabel output for peristaltic pump
+  bcm2835_gpio_fsel(PDN3, OUTPUT);
   bcm2835_gpio_write(PDN3, LOW);
 
   signal(SIGINT, interrupt); // Set interrupt(int) to handle Ctrl+c events
@@ -142,13 +151,17 @@ static State stateUI() {
       printf("Error: Must provide an integer distance X to move (move stepper X).\n");
     }
   } else if (strncmp(command, "pump on", 7) == 0) {
-    printf("(pump on)\n");
+    bcm2835_gpio_write(PDN3, HIGH);
+    printf("Peristaltic pump successfully activated.\n");
   } else if (strncmp(command, "pump off", 8) == 0) {
-    printf("(pump off)\n");
+    bcm2835_gpio_write(PDN3, LOW);
+    printf("Peristaltic pump successfully deactivated.\n");
   } else if (strncmp(command, "uv on", 5) == 0) {
-    printf("(uv on)\n");
+    bcm2835_gpio_write(PDN1, HIGH);
+    printf("UV LED successfully activated.\n");
   } else if (strncmp(command, "uv off", 6) == 0) {
-    printf("(uv off)\n");
+    bcm2835_gpio_write(PDN1, LOW);
+    printf("UV LED successfully deactivated.\n");
   } else {
     printf("Error: Invalid command.\n");
   }

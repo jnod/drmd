@@ -8,6 +8,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Use with bcm2835_gpio_fsel(PIN, INPUT/OUTPUT)
+#define INPUT     BCM2835_GPIO_FSEL_INPT // Pin input mode
+#define OUTPUT    BCM2835_GPIO_FSEL_OUTP // Pin output mode
+
+// Use with bcm2835_gpio_set_pud(PIN, PULLDOWN/PULLUP/NOPULL)
+#define PULLDOWN  BCM2835_GPIO_PUD_DOWN // Input with a pulldown resistor
+#define PULLUP    BCM2835_GPIO_PUD_UP   // Input with a pullup resistor
+#define NOPULL    BCM2835_GPIO_PUD_OFF  // Input with no pulldown or pullup resistors
+
 // GPIO pin mappings to the bcm2835 for rpi b+ and rpi 2 40 pin headers
 #define GPIO2     RPI_BPLUS_GPIO_J8_03
 #define GPIO3     RPI_BPLUS_GPIO_J8_05
