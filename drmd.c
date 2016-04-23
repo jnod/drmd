@@ -132,8 +132,9 @@ static State stateReadUV() {
 }
 
 static State stateMoveStepper() {
-  static int64_t prevtime = getTimestampNs();
+  static int64_t prevtime = 0;
   int64_t currenttime = getTimestampNs();
+  if (prevtime == 0) prevtime = currenttime;
 
   printf("(target = %d, timestamp = %ld)\n", stepper_target, currenttime);
   stepper_position = stepper_target;
