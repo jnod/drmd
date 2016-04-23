@@ -58,7 +58,7 @@ static void configOutput(uint8_t pin, uint8_t logiclevel) {
 
 static int64_t getTimestampNs() {
   struct timespec currenttime;
-  clock_gettime(CLOCK_MONOTONIC, &time);
+  clock_gettime(CLOCK_MONOTONIC, &currenttime);
   return currenttime.tv_sec * 1e9 + currenttime.tv_nsec;
 }
 
