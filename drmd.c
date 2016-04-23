@@ -4,12 +4,16 @@ typedef enum { TRUE, FALSE } Bool;
 typedef enum { MOVE_STEPPER, READ_UV, UI } State;
 
 static void       cleanAndExit();
+static void       configInput(uint8_t, uint8_t);
+static void       configOutput(uint8_t, uint8_t);
+static int64_t    getTimestampNs()
 static int        initialize();
 static void       interrupt(int);
 static State      machine(State);
 static State      stateMoveStepper();
 static State      stateReadUV();
 static State      stateUI();
+static void       writeToPin(uint8_t, uint8_t);
 
 static Bool       sigint_set = FALSE;
 static State      state = UI;
@@ -36,13 +40,26 @@ int main() {
 }
 
 static void cleanAndExit() {
-  bcm2835_gpio_fsel(PDN1, INPUT);
-  bcm2835_gpio_set_pud(PDN1, PULLDOWN);
-
-  bcm2835_gpio_fsel(PDN3, INPUT);
-  bcm2835_gpio_set_pud(PDN3, PULLDOWN);
+  configInput(PDN1, PULLDOWN);
+  configInput(PDN3, PULLDOWN);
 
   exit(0);
+}
+
+static void configInput(uint8_t pin, uint8_t pullmode) {
+  bcm2835_gpio_fsel(pin, INPUT);
+  bcm2835_gpio_set_pud(pin, pullmode);
+}
+
+static void configOutput(uint8_t pin, uint8_t logiclevel) {
+  bcm2835_gpio_fsel(pin, OUTPUT);
+  bcm2835_gpio_write(pin, logiclevel);
+}
+
+static int64_t getTimestampNs() {
+  struct timespec currenttime;
+  clock_gettime(CLOCK_MONOTONIC, &time);
+  return currenttime.tv_sec * 1e9 + currenttime.tv_nsec;
 }
 
 static int initialize() {
@@ -58,13 +75,8 @@ static int initialize() {
   buffer[0] = 0b10100000; // Code to enable continuous calibration on ADC
   bcm2835_i2c_write(buffer, 1);
 
-  // Enable output for UV LED
-  bcm2835_gpio_fsel(PDN1, OUTPUT);
-  bcm2835_gpio_write(PDN1, LOW);
-
-  // Enabel output for peristaltic pump
-  bcm2835_gpio_fsel(PDN3, OUTPUT);
-  bcm2835_gpio_write(PDN3, LOW);
+  configOutput(PDN1, LOW); // uv led off
+  configOutput(PDN3, LOW); // peristaltic pump off
 
   signal(SIGINT, interrupt); // Set interrupt(int) to handle Ctrl+c events
 
@@ -120,7 +132,10 @@ static State stateReadUV() {
 }
 
 static State stateMoveStepper() {
-  printf("(target = %d)\n", stepper_target);
+  static int64_t prevtime = getTimestampNs();
+  int64_t currenttime = getTimestampNs();
+
+  printf("(target = %d, timestamp = %ld)\n", stepper_target, currenttime);
   stepper_position = stepper_target;
 
   return UI;
@@ -167,4 +182,8 @@ static State stateUI() {
   }
 
   return UI;
+}
+
+static void writeToPin(uint8_t pin, uint8_t logiclevel) {
+
 }
