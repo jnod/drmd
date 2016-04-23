@@ -141,13 +141,13 @@ static State stateUI() {
     } else {
       printf("Error: Must provide an integer distance X to move (move stepper X).\n");
     }
-  } else if (strncmp(command, "pump on", 8) == 0) {
+  } else if (strncmp(command, "pump on", 7) == 0) {
     printf("(pump on)\n");
   } else if (strncmp(command, "pump off", 8) == 0) {
     printf("(pump off)\n");
   } else if (strncmp(command, "uv on", 5) == 0) {
     printf("(uv on)\n");
-  } else if (strncmp(command, "uv off", 5) == 0) {
+  } else if (strncmp(command, "uv off", 6) == 0) {
     printf("(uv off)\n");
   } else {
     printf("Error: Invalid command.\n");
