@@ -136,7 +136,7 @@ static State stateMoveStepper() {
   int64_t currenttime = getTimestampNs();
   if (prevtime == 0) prevtime = currenttime;
 
-  printf("(target = %d, timestamp = %ld)\n", stepper_target, currenttime);
+  printf("(target = %d, timestamp = %lld)\n", stepper_target, currenttime);
   stepper_position = stepper_target;
 
   return UI;
