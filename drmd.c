@@ -21,6 +21,11 @@ static uint8_t    buffer[2];
 static uint16_t   voltage;
 static int        stepper_position = 0;
 static int        stepper_target = 0;
+static uint16_t    stepper_rpm = 1;
+static uint16_t   microstep_per_rev = STEPS_PER_REV;
+
+#define MIN_RPM = 1;
+#define MAX_RPM = 100;
 
 int main() {
   if (initialize()) return 1; // exit if there was an error initializing
@@ -43,6 +48,17 @@ static void cleanAndExit() {
   configInput(PDN1, PULLDOWN);
   configInput(PDN3, PULLDOWN);
 
+  configInput(nENBL, NOPULL);
+  configInput(nSLEEP, NOPULL);
+  configInput(nRESET, NOPULL);
+  configInput(DECAY, NOPULL);
+  configInput(STEP, NOPULL);
+  configInput(DIR, NOPULL);
+
+  configInput(MODE0, NOPULL);
+  configInput(MODE1, NOPULL);
+  configInput(MODE2, NOPULL);
+
   exit(0);
 }
 
@@ -53,7 +69,7 @@ static void configInput(uint8_t pin, uint8_t pullmode) {
 
 static void configOutput(uint8_t pin, uint8_t logiclevel) {
   bcm2835_gpio_fsel(pin, OUTPUT);
-  bcm2835_gpio_write(pin, logiclevel);
+  writeToPin(pin, logiclevel);
 }
 
 static int64_t getTimestampNs() {
@@ -75,8 +91,21 @@ static int initialize() {
   buffer[0] = 0b10100000; // Code to enable continuous calibration on ADC
   bcm2835_i2c_write(buffer, 1);
 
-  configOutput(PDN1, LOW); // uv led off
-  configOutput(PDN3, LOW); // peristaltic pump off
+  configOutput(PDN1, LOW); // UV LED off
+  configOutput(PDN3, LOW); // Peristaltic pump off
+
+  configOutput(nENBL, HIGH); // Disable output drivers
+  configOutput(nSLEEP, HIGH); // Enable internal logic
+  configOutput(nRESET, HIGH); // Remove reset condition
+  configOutput(DECAY, LOW); // Slow decay
+  configOutput(STEP, LOW); // Ready to provide rising edge for step
+  configOutput(DIR, LOW); // Forward direction
+
+  // Use 1/32 microstepping
+  configOutput(MODE0, HIGH);
+  configOutput(MODE1, HIGH);
+  configOutput(MODE2, HIGH);
+  microstep_per_rev = STEPS_PER_REV * 32;
 
   signal(SIGINT, interrupt); // Set interrupt(int) to handle Ctrl+c events
 
@@ -88,6 +117,8 @@ static void interrupt(int signo) {
     if (state == UI) {
       printf("\n");
       cleanAndExit();
+    } else if (state == MOVE_STEPPER) {      
+      configOutput(nENBL, HIGH); // Disable output drivers
     }
     sigint_set = TRUE;
   }
@@ -139,6 +170,7 @@ static State stateMoveStepper() {
   printf("(target = %d, timestamp = %lld)\n", stepper_target, currenttime);
   stepper_position = stepper_target;
 
+  configOutput(nENBL, HIGH); // Disable output drivers
   return UI;
 }
 
@@ -159,6 +191,8 @@ static State stateUI() {
     if (command[12] != '\0' && command[13] != '\0') {
       if (sscanf(&command[13], "%d", &distance)) {
         stepper_target = stepper_position + distance;
+
+        writeToPin(nENBL, LOW); // Enable output drivers
         return MOVE_STEPPER;
       } else {
         printf("Error: Third parameter must be an integer.\n");
@@ -166,17 +200,33 @@ static State stateUI() {
     } else {
       printf("Error: Must provide an integer distance X to move (move stepper X).\n");
     }
+  } else if (strncmp(command, "stepper rpm", 11) == 0) {
+    int rpm = 0;
+    
+    if (command[11] != '\0' && command[12] != '\0') {
+      if (sscanf(&command[12], "%d", &rpm)) {
+        if (rpm >= MIN_RPM && rpm <= MAX_RPM) {
+          stepper_rpm = (uint16_t) rpm;
+        } else {
+          printf("Error: rpm must be between %d and %d inclusive.\n", MIN_RPM, MAX_RPM);
+        }
+      } else {
+        printf("Error: Third parameter must be an integer.\n");
+      }
+    } else {
+      printf("Error: Must provide an integer rpm X (stepper rpm X).\n");
+    }
   } else if (strncmp(command, "pump on", 7) == 0) {
-    bcm2835_gpio_write(PDN3, HIGH);
+    writeToPin(PDN3, HIGH);
     printf("Peristaltic pump successfully activated.\n");
   } else if (strncmp(command, "pump off", 8) == 0) {
-    bcm2835_gpio_write(PDN3, LOW);
+    writeToPin(PDN3, LOW);
     printf("Peristaltic pump successfully deactivated.\n");
   } else if (strncmp(command, "uv on", 5) == 0) {
-    bcm2835_gpio_write(PDN1, HIGH);
+    writeToPin(PDN1, HIGH);
     printf("UV LED successfully activated.\n");
   } else if (strncmp(command, "uv off", 6) == 0) {
-    bcm2835_gpio_write(PDN1, LOW);
+    writeToPin(PDN1, LOW);
     printf("UV LED successfully deactivated.\n");
   } else {
     printf("Error: Invalid command.\n");
@@ -186,5 +236,5 @@ static State stateUI() {
 }
 
 static void writeToPin(uint8_t pin, uint8_t logiclevel) {
-
+  bcm2835_gpio_write(pin, logiclevel);
 }

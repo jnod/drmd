@@ -61,11 +61,11 @@
       OD      Output with an Open Drain
 */
 #define nENBL     GPIO6       // PD     0, open = enable; 1 = disable
+#define nSLEEP    GPIO20      // PD     0, open = sleep, 1 = enable
+#define nRESET    GPIO26      // PD     0, open = reset internal logic
+#define DECAY     GPIO16      // PDPU   0 = slow, open = mixed, 1 = fast
 #define STEP      GPIO12      // PD     rising edge steps motor
 #define DIR       GPIO13      // PD     0 = forward, 1 = reverse
-#define DECAY     GPIO16      // PDPU   0 = slow, open = mixed, 1 = fast
-#define nRESET    GPIO26      // PD     
-#define nSLEEP    GPIO20      // PD     0 = sleep, 1 = enable
 
 #define nHOME     GPIO11      // OD     0 when at home state, open otherwise
 #define nFAULT    GPIO19      // OD     0 when overtemp/overcurrent, open otherwise
@@ -81,5 +81,7 @@
 #define MODE0     GPIO5       // PD
 #define MODE1     GPIO7       // PD
 #define MODE2     GPIO8       // PD
+
+#define STEPS_PER_REV   200   // Number of steps for a single stepper motor revolution
 
 #endif
