@@ -171,7 +171,7 @@ static State stateMoveStepper() {
 
   int64_t step_interval_ns = (((int64_t) stepper_rpm) * 1e9) / 60;
   int64_t currenttime_ns = getTimestampNs();
-  if (prevtime == 0) prevtime_ns = currenttime_ns;
+  if (prevtime_ns == 0) prevtime_ns = currenttime_ns;
 
   if (currenttime_ns - prevtime_ns >= step_interval_ns) {
     if (stepper_target - stepper_position > 1) {
