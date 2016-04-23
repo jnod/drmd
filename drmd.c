@@ -207,6 +207,7 @@ static State stateUI() {
       if (sscanf(&command[12], "%d", &rpm)) {
         if (rpm >= MIN_RPM && rpm <= MAX_RPM) {
           stepper_rpm = (uint16_t) rpm;
+          printf("Stepper speed successfully set to %d rpm.", stepper_rpm);
         } else {
           printf("Error: rpm must be between %d and %d inclusive.\n", MIN_RPM, MAX_RPM);
         }
