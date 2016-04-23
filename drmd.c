@@ -21,11 +21,11 @@ static uint8_t    buffer[2];
 static uint16_t   voltage;
 static int        stepper_position = 0;
 static int        stepper_target = 0;
-static uint16_t    stepper_rpm = 1;
+static uint16_t   stepper_rpm = 1;
 static uint16_t   microstep_per_rev = STEPS_PER_REV;
 
-#define MIN_RPM = 1;
-#define MAX_RPM = 100;
+#define MIN_RPM   1;
+#define MAX_RPM   100;
 
 int main() {
   if (initialize()) return 1; // exit if there was an error initializing
