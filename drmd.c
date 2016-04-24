@@ -10,6 +10,7 @@ static int64_t    getTimestampNs();
 static int        initialize();
 static void       interrupt(int);
 static State      machine(State);
+static uint8_t    readPin(uint8_t);
 static void       sleepNs(long);
 static State      stateMoveStepper();
 static State      stateReadUV();
@@ -60,6 +61,8 @@ static void cleanAndExit() {
   configInput(MODE1, NOPULL);
   configInput(MODE2, NOPULL);
 
+  configInput(nHOME, NOPULL);
+
   exit(0);
 }
 
@@ -107,6 +110,8 @@ static int initialize() {
   configOutput(MODE1, HIGH);
   configOutput(MODE2, HIGH);
 
+  configInput(nHOME, PULLUP);
+
   signal(SIGINT, interrupt); // Set interrupt(int) to handle Ctrl+c events
 
   return 0;
@@ -133,6 +138,10 @@ static State machine(State state) {
     case UI:
       return stateUI();
   }
+}
+
+static uint8_t readPin(uint8_t pin) {
+  return bcm2835_gpio_lev(pin);
 }
 
 /* Only works for nanosecond values between 0 and 1 second, non inclusive */
@@ -170,17 +179,15 @@ static State stateReadUV() {
 static State stateMoveStepper() {
   static int64_t prevtime_ns = 0;
 
+  if (stepper_position == stepper_target) {
+    configOutput(nENBL, HIGH); // Disable output drivers
+    return UI;
+  }
+
   int64_t step_interval_ns = 60e9 / ((int64_t) stepper_rpm * USTEP_PER_REV);
   int64_t currenttime_ns = getTimestampNs();
   if (prevtime_ns == 0) prevtime_ns = currenttime_ns;
   int64_t elapsed_ns = currenttime_ns - prevtime_ns;
-
-  if (stepper_position == stepper_target && elapsed_ns >= step_interval_ns / 2) {
-    // Makes sure STEP is high for half of the cycle before stopping
-    writeToPin(STEP, LOW);
-    configOutput(nENBL, HIGH); // Disable output drivers
-    return UI;
-  }
 
   if (elapsed_ns >= step_interval_ns) {
     if (stepper_target - stepper_position > 0) {
@@ -192,12 +199,11 @@ static State stateMoveStepper() {
     }
 
     writeToPin(STEP, HIGH);
+    sleepNs(3000); // 3 microseconds
+    writeToPin(STEP, LOW);
 
     prevtime_ns = currenttime_ns;
-    printf("(position = %d, elapsed_ns = %lld)\n", stepper_position, elapsed_ns);
-  } else if (elapsed_ns >= step_interval_ns / 2) {
-    // STEP must be high for at least 1.9 microseconds.
-    writeToPin(STEP, LOW);
+    printf("(position = %d, elapsed_ns = %lld, nHOME = %)\n", stepper_position, elapsed_ns, readPin(nHOME));
   }
 
   return MOVE_STEPPER;
