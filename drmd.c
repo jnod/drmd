@@ -21,8 +21,8 @@ static Bool       sigint_set = FALSE;
 static State      state = UI;
 static uint8_t    buffer[2];
 static uint16_t   voltage;
-static int        stepper_position = 0;
-static int        stepper_target = 0;
+static int        stepper_position = 0; // In microsteps, not mm
+static int        stepper_target = 0; // In microsteps, not mm
 static uint16_t   stepper_rpm = 100;
 
 #define MIN_RPM         50
@@ -149,6 +149,18 @@ static void sleepNs(long nanoseconds) {
   nanosleep((const struct timespec[]){{0, nanoseconds}}, NULL);
 }
 
+/* Max Resolution: .01 mm, Range: [-100 mm, 100 mm] */
+static int setTargetPosition(float distance_mm) {
+  if (distance_mm < -100 || distance_mm > 100) return 1;
+
+  // Convert to a whole number of .01 mm steps and then multiply by the
+  // number of microsteps necessary to move .01 mm (64 microsteps).
+  int num_steps = ((int)(distance_mm * 100)) * 64;
+  stepper_target = stepper_position + num_steps;
+
+  return 0;
+}
+
 static State stateReadUV() {
   static int count = 0;
   static int sum = 0;
@@ -218,17 +230,20 @@ static State stateUI() {
   if (strncmp(command, "exit", 4) == 0) {
     cleanAndExit();
   } else if (strncmp(command, "read uv", 7) == 0) {
-    printf("Press (ctrl+c) to stop:\n");
+    printf("Press (ctrl+c) to stop.\n");
     return READ_UV;
   } else if (strncmp(command, "move", 4) == 0) {
-    int distance = 0;
+    float distance_mm = 0;
     
     if (command[4] != '\0' && command[5] != '\0') {
-      if (sscanf(&command[5], "%d", &distance)) {
-        stepper_target = stepper_position + distance;
+      if (sscanf(&command[5], "%f", &distance_mm)) {
+        if (setTargetPosition(distance_mm)) {
+          printf("Error: Distance must be between -100.00 mm and 100.00 mm inclusive.\n");
+          return UI;
+        }
 
         writeToPin(nENBL, LOW); // Enable output drivers
-        printf("Press (ctrl+c) to stop.\n");
+        printf("Moving... Press (ctrl+c) to stop.\n");
         sleepNs(1e6); // Allow drivers time to enable
         return MOVE_STEPPER;
       } else {
