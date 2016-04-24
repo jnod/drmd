@@ -224,7 +224,7 @@ static State stateUI() {
     int distance = 0;
     
     if (command[4] != '\0' && command[5] != '\0') {
-      if (sscanf(&command[13], "%d", &distance)) {
+      if (sscanf(&command[5], "%d", &distance)) {
         stepper_target = stepper_position + distance;
 
         writeToPin(nENBL, LOW); // Enable output drivers
