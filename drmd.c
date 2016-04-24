@@ -191,15 +191,15 @@ static State stateMoveStepper() {
 
   if (elapsed_ns >= step_interval_ns) {
     if (stepper_target - stepper_position > 0) {
-      writeToPin(DIR, LOW);
+      if (readPin(DIR) != 0) writeToPin(DIR, LOW);
       stepper_position++;
     } else {
-      writeToPin(DIR, HIGH);
+      if (readPin(DIR) != 1) writeToPin(DIR, HIGH);
       stepper_position--;
     }
 
     writeToPin(STEP, HIGH);
-    sleepNs(3000); // 3 microseconds
+    sleepNs(10000); // 10 microseconds
     writeToPin(STEP, LOW);
 
     prevtime_ns = currenttime_ns;
