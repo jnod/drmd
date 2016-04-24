@@ -23,7 +23,7 @@ static uint8_t    buffer[2];
 static uint16_t   voltage;
 static int        stepper_position = 0;
 static int        stepper_target = 0;
-static uint16_t   stepper_rpm = 50;
+static uint16_t   stepper_rpm = 100;
 
 #define MIN_RPM         50
 #define MAX_RPM         800
@@ -220,19 +220,19 @@ static State stateUI() {
   } else if (strncmp(command, "read uv", 7) == 0) {
     printf("Press (ctrl+c) to stop:\n");
     return READ_UV;
-  } else if (strncmp(command, "move stepper", 12) == 0) {
+  } else if (strncmp(command, "move", 4) == 0) {
     int distance = 0;
     
-    if (command[12] != '\0' && command[13] != '\0') {
+    if (command[4] != '\0' && command[5] != '\0') {
       if (sscanf(&command[13], "%d", &distance)) {
         stepper_target = stepper_position + distance;
 
         writeToPin(nENBL, LOW); // Enable output drivers
-        printf("Press (ctrl+c) to stop:\n");
-        sleepNs(1e6);
+        printf("Press (ctrl+c) to stop.\n");
+        sleepNs(1e6); // Allow drivers time to enable
         return MOVE_STEPPER;
       } else {
-        printf("Error: Third parameter must be an integer.\n");
+        printf("Error: Distance must be an integer.\n");
       }
     } else {
       printf("Error: Must provide an integer distance X to move (move stepper X).\n");
