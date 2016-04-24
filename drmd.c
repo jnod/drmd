@@ -203,7 +203,7 @@ static State stateMoveStepper() {
     writeToPin(STEP, LOW);
 
     prevtime_ns = currenttime_ns;
-    printf("(position = %d, elapsed_ns = %lld, nHOME = %)\n", stepper_position, elapsed_ns, readPin(nHOME));
+    printf("(position = %d, elapsed_ns = %lld, nHOME = %d)\n", stepper_position, elapsed_ns, readPin(nHOME));
   }
 
   return MOVE_STEPPER;
