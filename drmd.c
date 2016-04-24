@@ -151,14 +151,23 @@ static void sleepNs(long nanoseconds) {
 
 /* Max Resolution: .01 mm, Range: [-100 mm, 100 mm] */
 static int setTargetPosition(float distance_mm) {
-  if (distance_mm < -100 || distance_mm > 100) return 1;
+  if (distance_mm < -100 || distance_mm > 100) {
+    printf("Error: Distance must be between -100.00 mm and 100.00 mm inclusive.\n");
+    return 1;
+  }
 
   // Convert to a whole number of .01 mm steps and then multiply by the
   // number of microsteps necessary to move .01 mm (64 microsteps).
   int num_steps = ((int)(distance_mm * 100)) * 64;
-  stepper_target = stepper_position + num_steps;
+  
+  if (num_steps != 0) {
+    stepper_target = stepper_position + num_steps;
+    return 0;
+  } else {
+    printf("Error: Maximum resolution is 0.01 mm.\n");
+  }
 
-  return 0;
+  return 1;
 }
 
 static State stateReadUV() {
@@ -237,13 +246,10 @@ static State stateUI() {
     
     if (command[4] != '\0' && command[5] != '\0') {
       if (sscanf(&command[5], "%f", &distance_mm)) {
-        if (setTargetPosition(distance_mm)) {
-          printf("Error: Distance must be between -100.00 mm and 100.00 mm inclusive.\n");
-          return UI;
-        }
+        if (setTargetPosition(distance_mm)) return UI;
 
         writeToPin(nENBL, LOW); // Enable output drivers
-        printf("Moving... Press (ctrl+c) to stop.\n");
+        printf("Moving %d micrometers... Press (ctrl+c) to stop.\n", (stepper_target-stepper_position)*10/64);
         sleepNs(1e6); // Allow drivers time to enable
         return MOVE_STEPPER;
       } else {
