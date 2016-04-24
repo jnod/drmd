@@ -26,8 +26,7 @@ static uint16_t   stepper_rpm = 1;
 
 #define MIN_RPM         1
 #define MAX_RPM         100
-#define USTEP_MODE      1
-#define USTEP_PER_REV   200 * USTEP_MODE // Number of microsteps per revolution
+#define USTEP_PER_REV   6400 // Number of microsteps per revolution
 
 int main() {
   if (initialize()) return 1; // exit if there was an error initializing
@@ -104,9 +103,9 @@ static int initialize() {
   configOutput(DIR, LOW); // Forward direction
 
   // Use 1/32 microstepping
-  configOutput(MODE0, LOW);
-  configOutput(MODE1, LOW);
-  configOutput(MODE2, LOW);
+  configOutput(MODE0, HIGH);
+  configOutput(MODE1, HIGH);
+  configOutput(MODE2, HIGH);
 
   signal(SIGINT, interrupt); // Set interrupt(int) to handle Ctrl+c events
 
@@ -220,7 +219,7 @@ static State stateUI() {
     
     if (command[12] != '\0' && command[13] != '\0') {
       if (sscanf(&command[13], "%d", &distance)) {
-        stepper_target = stepper_position + distance * USTEP_MODE;
+        stepper_target = stepper_position + distance;
 
         writeToPin(nENBL, LOW); // Enable output drivers
         printf("Press (ctrl+c) to stop:\n");
