@@ -23,10 +23,10 @@ static uint8_t    buffer[2];
 static uint16_t   voltage;
 static int        stepper_position = 0;
 static int        stepper_target = 0;
-static uint16_t   stepper_rpm = 1;
+static uint16_t   stepper_rpm = 50;
 
-#define MIN_RPM         1
-#define MAX_RPM         100
+#define MIN_RPM         50
+#define MAX_RPM         800
 #define USTEP_PER_REV   6400 // Number of microsteps per revolution
 
 int main() {
@@ -101,7 +101,7 @@ static int initialize() {
   configOutput(nENBL, HIGH); // Disable output drivers
   configOutput(nSLEEP, HIGH); // Enable internal logic
   configOutput(nRESET, HIGH); // Remove reset condition
-  configOutput(DECAY, LOW); // Slow decay
+  configOutput(DECAY, HIGH); // Mixed decay
   configOutput(STEP, LOW); // Ready to provide rising edge for step
   configOutput(DIR, LOW); // Forward direction
 
@@ -199,11 +199,11 @@ static State stateMoveStepper() {
     }
 
     writeToPin(STEP, HIGH);
-    sleepNs(10000); // 10 microseconds
+    sleepNs(5000); // 5 microseconds
     writeToPin(STEP, LOW);
 
     prevtime_ns = currenttime_ns;
-    printf("(position = %d, elapsed_ns = %lld, nHOME = %d)\n", stepper_position, elapsed_ns, readPin(nHOME));
+    //printf("(position = %d, elapsed_ns = %lld, nHOME = %d)\n", stepper_position, elapsed_ns, readPin(nHOME));
   }
 
   return MOVE_STEPPER;
